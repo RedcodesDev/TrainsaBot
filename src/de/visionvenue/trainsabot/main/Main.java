@@ -43,15 +43,15 @@ public class Main {
 
 	public static JDA jda;
 
-	public static String Version = "Release 1.0.5";
+	public static String Version = "Release 1.0.6";
 
-	public static boolean Dev = true;
+	public static boolean Dev = false;
 
 	public static String year = "2021";
 
 	public static String icon = "https://visionvenue.de/PicsVV/StatifyBotV3.png";
 
-	public static String prefix = "t!";
+	public static String prefix = "!";
 
 	public static Instant online = Instant.now();
 
@@ -292,7 +292,7 @@ public class Main {
 
 			Youtube yt = new Youtube("UCc46wGM26dLWD-dmr756sug");
 			if (yt.isNew()) {
-				yt.publish(jda.getTextChannelById(825349418550689813l));
+				yt.publish(jda.getTextChannelById(794540976298262549l));
 			}
 
 			verifycheck = 60;

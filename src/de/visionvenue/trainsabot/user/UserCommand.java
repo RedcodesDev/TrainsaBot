@@ -146,7 +146,7 @@ public class UserCommand extends ListenerAdapter {
 									}
 									msg.setColor(0x33cc33);
 									msg.setFooter("© Trainsa " + Main.year);
-									msg.setThumbnail("https://minotar.net/helm/" + player.getUUID() + ".png");
+									msg.setThumbnail("https://crafatar.com/avatars/" + player.getUUID() + ".png");
 									e.getChannel().sendMessage(msg.build()).reference(e.getMessage()).queue();
 
 									message.delete().queue();
