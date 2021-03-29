@@ -151,7 +151,7 @@ public class User {
 	public String getFirstTimeJoinedAsString() {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMANY)
 				.withZone(ZoneId.of("Europe/Berlin"));
-		String instant = formatter.format(Instant.now());
+		String instant = formatter.format(this.firstJoined);
 		return instant;
 	}
 
