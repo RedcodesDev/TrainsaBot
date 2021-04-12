@@ -27,11 +27,15 @@ public class VerifyCode {
 		if (doc != null) {
 			this.valid = true;
 
-			this.uuid = UUID.fromString(doc.getString("mc_uuid"));
-			if(doc.getLong("dc_id") != null) {
-			this.userid = doc.getLong("dc_id");
+			if (doc.getString("mc_uuid") != null) {
+				this.uuid = UUID.fromString(doc.getString("mc_uuid"));
+				if (doc.getLong("dc_id") != null) {
+					this.userid = doc.getLong("dc_id");
+				} else {
+					this.userid = 0l;
+				}
 			} else {
-				this.userid = 0l;
+				this.valid = false;
 			}
 
 		} else {
@@ -43,10 +47,10 @@ public class VerifyCode {
 
 		this.userid = userid;
 
-		if(isVerified()) {
+		if (isVerified()) {
 			return;
 		}
-		
+
 		MongoCollection<Document> collection = MongoDBHandler.getDatabase().getCollection("verify");
 		Document doc = collection.find(Filters.eq("dc_id", this.userid)).first();
 
@@ -73,10 +77,10 @@ public class VerifyCode {
 	public long getDiscordUserId() {
 		return this.userid;
 	}
-	
+
 	public void setMinecraftUUID(UUID uuid) {
 		this.uuid = uuid;
-		
+
 		MongoCollection<Document> collection = MongoDBHandler.getDatabase().getCollection("verify");
 		collection.updateOne(Filters.eq("_id", this.code), Updates.set("mc_uuid", this.uuid.toString()));
 	}
@@ -84,12 +88,12 @@ public class VerifyCode {
 	public UUID getMinecraftUUID() {
 		return this.uuid;
 	}
-	
+
 	public boolean isVerified() {
 		MongoCollection<Document> collection = MongoDBHandler.getDatabase().getCollection("users");
 		Document doc = collection.find(Filters.eq("discord_id", this.userid)).first();
-		
-		if(doc != null) {
+
+		if (doc != null) {
 			return true;
 		}
 		return false;
