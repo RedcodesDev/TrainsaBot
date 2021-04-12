@@ -34,6 +34,7 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
@@ -267,11 +268,17 @@ public class Main {
 					jda.retrieveUserById(doc.getLong("dc_id")).queue(user -> {
 						Mojang api = new Mojang().connect();
 						PlayerProfile player = api.getPlayerProfile(code.getMinecraftUUID().toString());
+						
+						try {
+						
 						jda.getGuildById(780041125721407528l).getMember(user).modifyNickname(player.getUsername())
 								.queue();
 						Role role = jda.getRoleById(785284945782374460l);
 						jda.getGuildById(780041125721407528l).addRoleToMember(user.getIdLong(), role).queue();
 
+						} catch(HierarchyException ex) {
+						}
+						
 						user.openPrivateChannel().queue(channel -> {
 
 							EmbedBuilder msg = new EmbedBuilder();
