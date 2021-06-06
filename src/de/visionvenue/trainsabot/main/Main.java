@@ -5,36 +5,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.Random;
 
 import javax.security.auth.login.LoginException;
 
-import org.bson.Document;
-import org.shanerx.mojang.Mojang;
-import org.shanerx.mojang.PlayerProfile;
-
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-
-import de.visionvenue.trainsabot.calls.CallListener;
-import de.visionvenue.trainsabot.calls.TalkLeaveListener;
-import de.visionvenue.trainsabot.data.MongoDBHandler;
-import de.visionvenue.trainsabot.help.HelpCommand;
-import de.visionvenue.trainsabot.rules.RuleReactionListener;
+import de.visionvenue.trainsabot.rules.RuleAcceptEvent;
 import de.visionvenue.trainsabot.token.DONOTOPEN;
-import de.visionvenue.trainsabot.user.UserCommand;
-import de.visionvenue.trainsabot.verify.VerifyCode;
-import de.visionvenue.trainsabot.verify.VerifyCommand;
-import de.visionvenue.trainsabot.yt.Youtube;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.exceptions.HierarchyException;
+import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
@@ -44,13 +27,13 @@ public class Main {
 
 	public static JDA jda;
 
-	public static String Version = "Release 1.0.6";
+	public static String Version = "Release 1.0";
 
 	public static boolean Dev = false;
 
 	public static String year = "2021";
 
-	public static String icon = "https://visionvenue.de/PicsVV/StatifyBotV3.png";
+	public static String icon = "";
 
 	public static String prefix = "!";
 
@@ -65,8 +48,6 @@ public class Main {
 	}
 
 	public Main() throws LoginException, IllegalArgumentException {
-
-		MongoDBHandler.connect();
 
 		String token = null;
 		if (Dev) {
@@ -84,13 +65,8 @@ public class Main {
 		builder.setMemberCachePolicy(MemberCachePolicy.ALL);
 
 		// Register Listener
-
-		builder.addEventListeners(new VerifyCommand());
-		builder.addEventListeners(new RuleReactionListener());
-		builder.addEventListeners(new UserCommand());
-		builder.addEventListeners(new HelpCommand());
-		builder.addEventListeners(new CallListener());
-		builder.addEventListeners(new TalkLeaveListener());
+		
+		builder.addEventListeners(new RuleAcceptEvent());
 
 		if (Dev) {
 		}
@@ -119,7 +95,6 @@ public class Main {
 						if (jda != null) {
 							jda.getPresence().setStatus(OnlineStatus.OFFLINE);
 							jda.shutdown();
-							MongoDBHandler.disconnect();
 							System.out.println("The Bot is now Offline!");
 						}
 						if (loop != null) {
@@ -164,20 +139,8 @@ public class Main {
 								false);
 						msg.setColor(0x33cc33);
 						msg.setFooter("© Trainsa " + Main.year);
-						jda.getTextChannelById(794538597692473375l).sendMessage(msg.build()).queue(message -> {
-							message.addReaction("✅").queue();
-						});
-
-					} else if (line.equalsIgnoreCase("yt")) {
-
-						Youtube yt = new Youtube("UCc46wGM26dLWD-dmr756sug");
-						System.out.println("Newest Video Data");
-						System.out.println("Title: " + yt.getTitle());
-						System.out.println("Short Description: " + yt.getShortDescription());
-						System.out.println("URL: " + yt.getURL());
-						System.out.println("Is New: " + yt.isNew());
-						yt.publish(jda.getTextChannelById(825349418550689813l));
-
+						jda.getTextChannelById(794538597692473375l).sendMessage(msg.build())
+								.setActionRow(Button.primary("accept", "✅")).queue();
 					} else {
 						System.out.println("Use 'exit' or 'stop' to shutdown");
 					}
@@ -210,7 +173,6 @@ public class Main {
 	}
 
 	int next = 7;
-	int verifycheck = 10;
 	String[] status = new String[] { "%prefix%help", "%members% User", "%version%"
 
 	};
@@ -251,60 +213,6 @@ public class Main {
 			next = 7;
 		} else {
 			next--;
-		}
-
-		if (verifycheck <= 0) {
-
-			MongoCollection<Document> collection = MongoDBHandler.getDatabase().getCollection("verify");
-			FindIterable<Document> iterable = collection.find();
-			Iterator<Document> iterator = iterable.iterator();
-
-			while (iterator.hasNext()) {
-				Document doc = iterator.next();
-
-				if (doc.getString("mc_uuid") != null && doc.getLong("dc_id") != null) {
-					VerifyCode code = new VerifyCode(doc.getString("_id"));
-
-					jda.retrieveUserById(doc.getLong("dc_id")).queue(user -> {
-						Mojang api = new Mojang().connect();
-						PlayerProfile player = api.getPlayerProfile(code.getMinecraftUUID().toString());
-						
-						try {
-						
-						jda.getGuildById(780041125721407528l).getMember(user).modifyNickname(player.getUsername())
-								.queue();
-						Role role = jda.getRoleById(785284945782374460l);
-						jda.getGuildById(780041125721407528l).addRoleToMember(user.getIdLong(), role).queue();
-
-						} catch(HierarchyException ex) {
-						}
-						
-						user.openPrivateChannel().queue(channel -> {
-
-							EmbedBuilder msg = new EmbedBuilder();
-							msg.setTitle("Willkommen **" + player.getUsername() + "**");
-							msg.setDescription(
-									"Dein Minecraft Account wurde erfolgreich mit deinem Discord Account verknüpft.");
-							msg.setColor(0x33cc33);
-							msg.setFooter("© Trainsa " + Main.year);
-							msg.setThumbnail("https://crafatar.com/avatars/" + player.getUUID());
-							channel.sendMessage(msg.build()).append(user.getAsMention()).queue();
-
-						});
-					});
-
-					code.delete(doc.getLong("dc_id"));
-				}
-			}
-
-			Youtube yt = new Youtube("UCc46wGM26dLWD-dmr756sug");
-			if (yt.isNew()) {
-				yt.publish(jda.getTextChannelById(794540976298262549l));
-			}
-
-			verifycheck = 60;
-		} else {
-			verifycheck--;
 		}
 
 	}
