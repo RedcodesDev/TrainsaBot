@@ -2,7 +2,6 @@ package de.visionvenue.trainsabot.yt;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.DirectoryStream.Filter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

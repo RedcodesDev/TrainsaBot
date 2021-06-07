@@ -1,11 +1,9 @@
 package de.visionvenue.trainsabot.verify;
 
 import java.awt.Color;
-import java.util.Properties;
 
 import org.shanerx.mojang.Mojang;
 import org.shanerx.mojang.PlayerProfile;
-import org.shanerx.mojang.PlayerProfile.Property;
 
 import de.visionvenue.trainsabot.error.Error;
 import de.visionvenue.trainsabot.main.Main;
