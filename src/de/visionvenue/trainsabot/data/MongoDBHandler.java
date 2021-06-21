@@ -6,6 +6,9 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
+import de.visionvenue.trainsabot.main.Main;
+import de.visionvenue.trainsabot.token.DONOTOPEN;
+
 public class MongoDBHandler {
 
 	static MongoDatabase db;
@@ -13,14 +16,26 @@ public class MongoDBHandler {
 
 	public static void connect() {
 
-			ConnectionString connString = new ConnectionString(
-					"mongodb+srv://discord-bot:yoNk9MNq8kaliqe1@cluster.joyo9.mongodb.net/Database?retryWrites=true&w=majority");
-			MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connString)
-					.retryWrites(true).build();
-			client = MongoClients.create(settings);
-			MongoDatabase database = client.getDatabase("Database");
-			System.out.println("Connected to database");
-			db = database;
+			ConnectionString connString;
+			if(Main.Dev) {
+				connString = new ConnectionString(
+						DONOTOPEN.getDevMongoConnectionURL());
+				MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connString)
+						.retryWrites(true).build();
+				client = MongoClients.create(settings);
+				MongoDatabase database = client.getDatabase("Development");
+				System.out.println("Connected to database");
+				db = database;
+			} else {
+				connString = new ConnectionString(
+						DONOTOPEN.getMongoConnectionURL());
+				MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connString)
+						.retryWrites(true).build();
+				client = MongoClients.create(settings);
+				MongoDatabase database = client.getDatabase("Database");
+				System.out.println("Connected to database");
+				db = database;
+			}
 	}
 	
 	public static void disconnect() {

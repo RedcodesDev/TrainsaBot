@@ -4,19 +4,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 
 import javax.security.auth.login.LoginException;
 
+import de.visionvenue.trainsabot.data.MongoDBHandler;
 import de.visionvenue.trainsabot.rules.RuleAcceptEvent;
+import de.visionvenue.trainsabot.technicpack.TechnicPack;
+import de.visionvenue.trainsabot.technicpack.TechnicPackUpdate;
 import de.visionvenue.trainsabot.token.DONOTOPEN;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -27,13 +34,13 @@ public class Main {
 
 	public static JDA jda;
 
-	public static String Version = "Release 1.0";
+	public static String Version = "Release 1.1";
 
-	public static boolean Dev = false;
+	public static boolean Dev = true;
 
 	public static String year = "2021";
 
-	public static String icon = "";
+	public static String icon = "https://example.com";
 
 	public static String prefix = "!";
 
@@ -65,7 +72,7 @@ public class Main {
 		builder.setMemberCachePolicy(MemberCachePolicy.ALL);
 
 		// Register Listener
-		
+
 		builder.addEventListeners(new RuleAcceptEvent());
 
 		if (Dev) {
@@ -78,6 +85,8 @@ public class Main {
 
 		shutdown();
 		runLoop();
+
+		MongoDBHandler.connect();
 
 	}
 
@@ -93,6 +102,7 @@ public class Main {
 					if (line.equalsIgnoreCase("exit") || line.equalsIgnoreCase("stop")) {
 						shutdown = true;
 						if (jda != null) {
+							MongoDBHandler.disconnect();
 							jda.getPresence().setStatus(OnlineStatus.OFFLINE);
 							jda.shutdown();
 							System.out.println("The Bot is now Offline!");
@@ -139,7 +149,7 @@ public class Main {
 								false);
 						msg.setColor(0x33cc33);
 						msg.setFooter("© Trainsa " + Main.year);
-						jda.getTextChannelById(794538597692473375l).sendMessage(msg.build())
+						jda.getTextChannelById(794538597692473375l).sendMessageEmbeds(msg.build())
 								.setActionRow(Button.primary("accept", "✅")).queue();
 					} else {
 						System.out.println("Use 'exit' or 'stop' to shutdown");
@@ -173,6 +183,7 @@ public class Main {
 	}
 
 	int next = 7;
+	int technicCheck = 10;
 	String[] status = new String[] { "%prefix%help", "%members% User", "%version%"
 
 	};
@@ -213,6 +224,45 @@ public class Main {
 			next = 7;
 		} else {
 			next--;
+		}
+
+		if (technicCheck <= 0) {
+
+			TechnicPack pack = new TechnicPack("tics-30");
+
+			if (!pack.getUpdates().get(0).isPublished()) {
+				TechnicPackUpdate update = pack.getUpdates().get(0);
+				EmbedBuilder msg = new EmbedBuilder();
+				msg.setTitle("TICS 3.0 Modpack Update");
+				msg.setDescription(
+						"Beschreibung: **" + update.getContent() + "**\nVersion: **" + pack.getVersion() + "**");
+				msg.setColor(0x33cc33);
+				msg.setFooter("© TICS 3.0 Bot " + Main.year);
+
+				List<ActionRow> rows = new ArrayList<ActionRow>();
+				rows.add(ActionRow.of(
+						Button.link(pack.getUrl().toString(), "Technic Launcher Download")
+								.withEmoji(Emoji.fromMarkdown("🛠")),
+						Button.link(pack.getDownloadUrl().toString(), "Direkter Download")
+								.withEmoji(Emoji.fromMarkdown("💻"))));
+				rows.add(ActionRow.of(
+						Button.success("downloads", pack.getDownloads() + " Downloads")
+								.withEmoji(Emoji.fromMarkdown("📈")).asDisabled(),
+						Button.success("rating", pack.getRating() + " Likes").withEmoji(Emoji.fromMarkdown("⭐"))
+								.asDisabled(),
+						Button.success("runs", pack.getRuns() + " mal gestartet").withEmoji(Emoji.fromMarkdown("🔁"))
+								.asDisabled()));
+
+				jda.getGuildById(780041125721407528l).getTextChannelById(825349418550689813l)
+						.sendMessageEmbeds(msg.build()).setActionRows(rows).queue();
+
+				update.publish();
+			}
+
+			technicCheck = 60;
+
+		} else {
+			technicCheck--;
 		}
 
 	}
