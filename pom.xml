@@ -45,11 +45,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-<<<<<<< HEAD
-			<version>4.3.0_280</version>
-=======
 			<version>4.3.0_334</version>
->>>>>>> 46b0290e62619b05f8a774414ded6f8ff33e289f
 			<exclusions>
 				<exclusion>
 					<groupId>club.minnced</groupId>
