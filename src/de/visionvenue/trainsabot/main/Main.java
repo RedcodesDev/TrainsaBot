@@ -1,5 +1,6 @@
 package de.visionvenue.trainsabot.main;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,7 +12,16 @@ import java.util.Random;
 
 import javax.security.auth.login.LoginException;
 
+import org.bson.Document;
+
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+
 import de.visionvenue.trainsabot.data.MongoDBHandler;
+import de.visionvenue.trainsabot.minecraft.MinecraftServer;
+import de.visionvenue.trainsabot.minecraft.buttons.InfoButtonClickListener;
+import de.visionvenue.trainsabot.minecraft.commands.InfoCommand;
 import de.visionvenue.trainsabot.rules.RuleAcceptEvent;
 import de.visionvenue.trainsabot.technicpack.TechnicPack;
 import de.visionvenue.trainsabot.technicpack.TechnicPackUpdate;
@@ -23,6 +33,7 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -34,9 +45,11 @@ public class Main {
 
 	public static JDA jda;
 
-	public static String Version = "Release 1.1";
+	public static String Version = "Release 1.2";
 
-	public static boolean Dev = true;
+	public static boolean Dev = false;
+	
+	public static String IP = "45.82.121.72:25565";
 
 	public static String year = "2021";
 
@@ -73,6 +86,8 @@ public class Main {
 
 		// Register Listener
 
+		builder.addEventListeners(new InfoCommand());
+		builder.addEventListeners(new InfoButtonClickListener());
 		builder.addEventListeners(new RuleAcceptEvent());
 
 		if (Dev) {
@@ -183,13 +198,24 @@ public class Main {
 	}
 
 	int next = 7;
-	int technicCheck = 10;
+	int minuteCheck = 10;
+	boolean commandCheck = true;
 	String[] status = new String[] { "%prefix%help", "%members% User", "%version%"
 
 	};
 
 	public void onSecond() {
 		if (next <= 0) {
+
+			if (commandCheck) {
+				commandCheck = false;
+
+				List<CommandData> cmds = new ArrayList<CommandData>();
+				cmds.add(new CommandData("info", "Informationen über den TICS 3.0 Minecraft Server."));
+
+				jda.getGuildById(780041125721407528l).updateCommands().addCommands(cmds).queue();
+			}
+
 			Random rand = new Random();
 			int i = rand.nextInt(status.length);
 
@@ -226,8 +252,38 @@ public class Main {
 			next--;
 		}
 
-		if (technicCheck <= 0) {
+		if (minuteCheck <= 0) {
 
+			//Minecraft Server Online Status
+			
+			MinecraftServer server = new MinecraftServer(Main.IP);
+			
+			
+			MongoCollection<Document> collection = MongoDBHandler.getDatabase().getCollection("data");
+			Document doc = collection.find(Filters.eq("_id", "serverstatus")).first();
+			
+			if(!doc.getBoolean("laststatus").equals(server.isOnline())) {
+				if(server.isOnline()) {
+					EmbedBuilder msg = new EmbedBuilder();
+					msg.setTitle("TICS 3.0 - Minecraft Server Information");
+					msg.setDescription("> Der Server ist nun wieder **online**!");
+					msg.setColor(0x33cc33);
+					msg.setFooter("© Trainsa " + Main.year);
+					jda.getTextChannelById(813475362473771069l).sendMessageEmbeds(msg.build()).queue();
+					collection.updateOne(Filters.eq("_id", "serverstatus"), Updates.set("laststatus", true));
+				} else {
+					EmbedBuilder msg = new EmbedBuilder();
+					msg.setTitle("TICS 3.0 - Minecraft Server Information");
+					msg.setDescription("> Der Server ist **offline**!");
+					msg.setColor(Color.RED);
+					msg.setFooter("© Trainsa " + Main.year);
+					jda.getTextChannelById(813475362473771069l).sendMessageEmbeds(msg.build()).queue();
+					collection.updateOne(Filters.eq("_id", "serverstatus"), Updates.set("laststatus", false));
+				}
+			}
+			
+			//TechnicModpack Updater
+			
 			TechnicPack pack = new TechnicPack("tics-30");
 
 			if (!pack.getUpdates().get(0).isPublished()) {
@@ -253,16 +309,16 @@ public class Main {
 						Button.success("runs", pack.getRuns() + " mal gestartet").withEmoji(Emoji.fromMarkdown("🔁"))
 								.asDisabled()));
 
-				jda.getGuildById(780041125721407528l).getTextChannelById(825349418550689813l)
+				jda.getGuildById(780041125721407528l).getTextChannelById(823854376262959105l)
 						.sendMessageEmbeds(msg.build()).setActionRows(rows).queue();
 
 				update.publish();
 			}
 
-			technicCheck = 60;
+			minuteCheck = 60;
 
 		} else {
-			technicCheck--;
+			minuteCheck--;
 		}
 
 	}
