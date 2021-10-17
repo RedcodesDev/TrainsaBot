@@ -11,50 +11,55 @@ public class InfoButtonClickListener extends ListenerAdapter {
 
 	public void onButtonClick(ButtonClickEvent e) {
 
-		e.deferReply().setEphemeral(true).queue();
-		
-		MinecraftServer server = new MinecraftServer(Main.IP);
+		String[] args = e.getButton().getId().split("_");
 
-		EmbedBuilder msg = new EmbedBuilder();
+		if (args[0].equalsIgnoreCase("serverinfo")) {
 
-		switch (e.getButton().getId()) {
+			e.deferReply().setEphemeral(true).complete();
 
-		case "players":
+			MinecraftServer server = new MinecraftServer(Main.IP);
 
-			msg.setTitle("**TICS 3.0** - Minecraft Server Spielerliste (**" + server.getPlayerCount() + "**/**"
-					+ server.getMaxPlayerCount() + "**)");
-			String plrs = "";
-			for (MinecraftPlayer plr : server.getPlayers()) {
-				plrs += "`" + plr.getUsername() + "`\n";
-			}
-			msg.setDescription(plrs);
-			msg.setColor(0x33cc33);
-			msg.setFooter("© Trainsa " + Main.year);
-			e.getHook().editOriginalEmbeds(msg.build()).queue();
-			break;
+			EmbedBuilder msg = new EmbedBuilder();
 
-		case "mods":
+			switch (args[1]) {
 
-			msg.setTitle("**TICS 3.0** - Minecraft Server Modliste (**" + server.getMods().size() + "**)");
-			String mods = "";
-			for (String mod : server.getMods()) {
-				if (mods.length() <= 2000) {
-					mods += "`" + mod + "`\n";
-				} else {
-					mods += "...";
-					break;
+			case "players":
+
+				msg.setTitle("**TICS 3.0** - Minecraft Server Spielerliste (**" + server.getPlayerCount() + "**/**"
+						+ server.getMaxPlayerCount() + "**)");
+				String plrs = "";
+				for (MinecraftPlayer plr : server.getPlayers()) {
+					plrs += "`" + plr.getUsername() + "`\n";
 				}
+				msg.setDescription(plrs);
+				msg.setColor(0x33cc33);
+				msg.setFooter("© Trainsa " + Main.year);
+				e.getHook().editOriginalEmbeds(msg.build()).queue();
+				break;
+
+			case "mods":
+
+				msg.setTitle("**TICS 3.0** - Minecraft Server Modliste (**" + server.getMods().size() + "**)");
+				String mods = "";
+				for (String mod : server.getMods()) {
+					if (mods.length() <= 2000) {
+						mods += "`" + mod + "`\n";
+					} else {
+						mods += "...";
+						break;
+					}
+				}
+
+				msg.setDescription(mods);
+				msg.setColor(0x33cc33);
+				msg.setFooter("© Trainsa " + Main.year);
+				e.getHook().editOriginalEmbeds(msg.build()).queue();
+				break;
+
+			default:
+				break;
+
 			}
-
-			msg.setDescription(mods);
-			msg.setColor(0x33cc33);
-			msg.setFooter("© Trainsa " + Main.year);
-			e.getHook().editOriginalEmbeds(msg.build()).queue();
-			break;
-
-		default:
-			break;
-
 		}
 	}
 

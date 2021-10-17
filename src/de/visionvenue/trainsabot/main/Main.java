@@ -45,11 +45,11 @@ public class Main {
 
 	public static JDA jda;
 
-	public static String Version = "Release 1.2";
+	public static String Version = "Release 1.3";
 
 	public static boolean Dev = false;
-	
-	public static String IP = "45.82.121.72:25565";
+
+	public static String IP = "162.55.244.11:13139";
 
 	public static String year = "2021";
 
@@ -164,8 +164,9 @@ public class Main {
 								false);
 						msg.setColor(0x33cc33);
 						msg.setFooter("© Trainsa " + Main.year);
-						jda.getTextChannelById(794538597692473375l).sendMessageEmbeds(msg.build())
-								.setActionRow(Button.primary("accept", "✅")).queue();
+						jda.getTextChannelById(794538597692473375l)
+								.editMessageEmbedsById(851205525365456906L, msg.build()).override(true)
+								.setActionRow(Button.primary("rules_accept", "✅")).queue();
 					} else {
 						System.out.println("Use 'exit' or 'stop' to shutdown");
 					}
@@ -254,16 +255,15 @@ public class Main {
 
 		if (minuteCheck <= 0) {
 
-			//Minecraft Server Online Status
-			
+			// Minecraft Server Online Status
+
 			MinecraftServer server = new MinecraftServer(Main.IP);
-			
-			
+
 			MongoCollection<Document> collection = MongoDBHandler.getDatabase().getCollection("data");
 			Document doc = collection.find(Filters.eq("_id", "serverstatus")).first();
-			
-			if(!doc.getBoolean("laststatus").equals(server.isOnline())) {
-				if(server.isOnline()) {
+
+			if (!doc.getBoolean("laststatus").equals(server.isOnline())) {
+				if (server.isOnline()) {
 					EmbedBuilder msg = new EmbedBuilder();
 					msg.setTitle("TICS 3.0 - Minecraft Server Information");
 					msg.setDescription("> Der Server ist nun wieder **online**!");
@@ -281,9 +281,9 @@ public class Main {
 					collection.updateOne(Filters.eq("_id", "serverstatus"), Updates.set("laststatus", false));
 				}
 			}
-			
-			//TechnicModpack Updater
-			
+
+			// TechnicModpack Updater
+
 			TechnicPack pack = new TechnicPack("tics-30");
 
 			if (!pack.getUpdates().get(0).isPublished()) {

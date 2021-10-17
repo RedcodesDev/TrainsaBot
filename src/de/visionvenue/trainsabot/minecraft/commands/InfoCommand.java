@@ -27,31 +27,34 @@ public class InfoCommand extends ListenerAdapter {
 
 		if (server.isOnline()) {
 
-			String base64 = server.getIcon64();
-			String base64ImageString = base64.replace("data:image/png;base64,", "");
-			Decoder decoder = Base64.getDecoder();
-			byte[] imageBytes = decoder.decode(base64ImageString);
+			if (server.getIcon64() != null) {
 
-			FileOutputStream fos = null;
-			try {
-				fos = new FileOutputStream("icon.png");
-			} catch (FileNotFoundException e2) {
-				e2.printStackTrace();
-			}
-			try {
-				try {
-					fos.write(imageBytes);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			} finally {
-				try {
-					fos.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
+				String base64 = server.getIcon64();
+				String base64ImageString = base64.replace("data:image/png;base64,", "");
+				Decoder decoder = Base64.getDecoder();
+				byte[] imageBytes = decoder.decode(base64ImageString);
 
+				FileOutputStream fos = null;
+				try {
+					fos = new FileOutputStream("icon.png");
+				} catch (FileNotFoundException e2) {
+					e2.printStackTrace();
+				}
+				try {
+					try {
+						fos.write(imageBytes);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				} finally {
+					try {
+						fos.close();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+
+			}
 		}
 
 		EmbedBuilder msg = new EmbedBuilder();
@@ -65,15 +68,13 @@ public class InfoCommand extends ListenerAdapter {
 
 		List<Button> row1 = new ArrayList<Button>();
 		if (server.isOnline()) {
-			row1.add(Button.secondary("players", "Playerlist (" + server.getPlayerCount() + ")")
+			row1.add(Button.secondary("serverinfo_players", "Playerlist (" + server.getPlayerCount() + ")")
 					.withEmoji(Emoji.fromMarkdown("💺")));
-			row1.add(Button.secondary("mods", "Modlist (" + server.getMods().size() + ")")
+			row1.add(Button.secondary("serverinfo_mods", "Modlist (" + server.getMods().size() + ")")
 					.withEmoji(Emoji.fromMarkdown("🌐")));
 		} else {
-			row1.add(Button.secondary("players", "Playerlist").asDisabled()
-					.withEmoji(Emoji.fromMarkdown("💺")));
-			row1.add(Button.secondary("mods", "Modlist").asDisabled()
-					.withEmoji(Emoji.fromMarkdown("🌐")));
+			row1.add(Button.secondary("serverinfo_players", "Playerlist").asDisabled().withEmoji(Emoji.fromMarkdown("💺")));
+			row1.add(Button.secondary("serverinfo_mods", "Modlist").asDisabled().withEmoji(Emoji.fromMarkdown("🌐")));
 		}
 
 		e.getHook().editOriginalEmbeds(msg.build()).addFile(new File("icon.png"), "icon.png").setActionRow(row1)

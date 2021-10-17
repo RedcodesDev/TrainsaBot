@@ -55,7 +55,9 @@ public class MinecraftServer {
 					this.playerCount = e.get("players").getAsJsonObject().get("online").getAsInt();
 					this.maxPlayerCount = e.get("players").getAsJsonObject().get("max").getAsInt();
 
-					this.icon64 = e.get("icon").getAsString();
+					if (e.get("icon") != null) {
+						this.icon64 = e.get("icon").getAsString();
+					}
 
 					this.minecraftVersion = e.get("version").getAsString();
 
